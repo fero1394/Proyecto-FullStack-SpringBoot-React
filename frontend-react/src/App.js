@@ -1,4 +1,5 @@
-import React, {useContext, useReducer, useEffect} from 'react';
+import React, {useContext, useReducer, useEffect, useRef} from 'react';
+//useRef identifica las propiedades de un componente en especifico
 //reducer es un hook, funcion de react que nos ayuda administrar nuestra funcion reducer que implementa la logica necesaria para los estados y el dispatch
 //useEffect nos permite trabajar en segundo plano (background) no deja que se bloquea el render es decir no espera a que el backend responda por ejemplo
 const HOST_API = "http://localhost:8080/api";
@@ -10,6 +11,29 @@ const initialState ={
 
 //se crea para poder usar el store y se debe dar los estados iniciales
 const Store = createContext(initialState)
+
+//Formulario para capturar la informacion del usuario
+const Form = () => {
+  //identifica las propiedades de un componente en especifico en este caso el formulario
+  const formRef = useRef(null);
+
+
+  return <form ref={formRef}>
+    <input type="text" name="name" onChange={(event) => {
+      setState({...state, description: event.target.value})
+    }}></input>
+    <input type="text" name="description" onChange={(event) => {
+      setState({ ...state, description: event.target.value})
+    }}></input>
+    <button onClick={onAdd}>Agregar</button>
+
+  </form>
+
+
+}
+
+
+
 
 const List = () => {  
 
