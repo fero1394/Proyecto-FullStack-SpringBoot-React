@@ -17,7 +17,7 @@ const List = () => {
   const {dispatch, state} = useContext(Store);
 
   //con este useEffect se realizan las consultas a travez de un fetch
-  //El fetch es un metodo que nos permite consultar consultar por HTTP o a cualquier recurso que este en la web. el Fetch es una promesa de javascript que se necestia resolver...
+  //El fetch es un metodo que nos permite consultar consultar por HTTP o a cualquier recurso que este en la web. el Fetch es una promesa de javascript que se necestia resolver
   useEffect(() => {
     //endpoint
     fetch(HOST_API+"/todos")
