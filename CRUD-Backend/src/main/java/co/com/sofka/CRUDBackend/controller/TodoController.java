@@ -6,6 +6,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
+/**
+ *El croosOrigin permite que el backend este en el mismo puerto y dominio que el frontend
+ */
+@CrossOrigin(origins = "http://localhost:3000")
 public class TodoController {
 
     //inyeccion de el Service para que pueda acceder a los servicion en controller...

@@ -30,7 +30,7 @@ const Form = () => {
       isComplete: false
     };
 
-    //Este fetch especifica que es un POST el post recive un body que es el que se modela en el request
+    //Este fetch especifica que es un POST el post recibe un body que es el que se modela en el request
     fetch(HOST_API+"/todo", {
       method: "POST",
       body: JSON.stringify(request),
@@ -49,7 +49,7 @@ const Form = () => {
 
   return <form ref={formRef}>
     <input type="text" name="name" onChange={(event) => {
-      setState({...state, description: event.target.value})
+      setState({...state, name: event.target.value})
     }}></input>
     <button onClick={onAdd}>Agregar</button>
 
@@ -57,6 +57,10 @@ const Form = () => {
 
 
 }
+
+
+
+
 
 
 
@@ -92,7 +96,7 @@ const List = () => {
     </thead>
     <tbody>
       {state.list.map((todo) => {
-        return <tr key={todoid}>
+        return <tr key={todo.id}>
           <td>{todo.id}</td>
           <td>{todo.name}</td>
           <td>{todo.isCompleted}</td>
