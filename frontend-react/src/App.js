@@ -1,4 +1,4 @@
-import React, {useContext, useReducer, useEffect, useRef} from 'react';
+import React, {createContext,useContext, useReducer, useEffect, useRef , useState} from 'react';
 //useRef identifica las propiedades de un componente en especifico
 //reducer es un hook, funcion de react que nos ayuda administrar nuestra funcion reducer que implementa la logica necesaria para los estados y el dispatch
 //useEffect nos permite trabajar en segundo plano (background) no deja que se bloquea el render es decir no espera a que el backend responda por ejemplo
@@ -16,14 +16,40 @@ const Store = createContext(initialState)
 const Form = () => {
   //identifica las propiedades de un componente en especifico en este caso el formulario
   const formRef = useRef(null);
+  const {dispatch} = useContext(Store);
+  //nos permite tener estados internos dentro del componente
+  const [state, setState] = useState({});
+
+//metodo llamado al presionar el boton agregar de el formulario
+  const onAdd = (event) => {
+    event.preventDefault();
+
+    const request = {
+      name: state.name,
+      id: null,
+      isComplete: false
+    };
+
+    //Este fetch especifica que es un POST el post recive un body que es el que se modela en el request
+    fetch(HOST_API+"/todo", {
+      method: "POST",
+      body: JSON.stringify(request),
+      headers: { // en el header se dice que este contenido va a transportar un Json
+        'Content-Type': 'application/json'
+      }
+    }) // en este then se convierte los datos (mapear) a json
+    .then(response => response.json())
+    .then((todo) => { //el todo es el objeto
+      dispatch({type: "add-item", item: todo});
+      setState({name: ""});
+      formRef.current.reset();
+    });
+  }
 
 
   return <form ref={formRef}>
     <input type="text" name="name" onChange={(event) => {
       setState({...state, description: event.target.value})
-    }}></input>
-    <input type="text" name="description" onChange={(event) => {
-      setState({ ...state, description: event.target.value})
     }}></input>
     <button onClick={onAdd}>Agregar</button>
 
@@ -83,6 +109,7 @@ function reducer(state, action) {
     case 'update-list':
       return {...state, list: action.list}
       case 'add-item':
+        /**obten el listado reciente y añade un nuevo item  */
         const newList = state.list;
         newList.push(action.item);
         return {...state, list: newList}
@@ -112,6 +139,7 @@ const StoreProvider = ({ children }) => { //StoreProvider es un contenedor de co
 
 function App() {
   return (<StoreProvider>
+    <Form />
     <List/>
   </StoreProvider>
 
