@@ -6,7 +6,8 @@ const HOST_API = "http://localhost:8080/api";
 
 //Variables iniciales para pasarlas como parametro al store
 const initialState ={
-  list: []
+  list: [],
+  item:{}
 };
 
 //se crea para poder usar el store y se debe dar los estados iniciales
@@ -16,9 +17,9 @@ const Store = createContext(initialState)
 const Form = () => {
   //identifica las propiedades de un componente en especifico en este caso el formulario
   const formRef = useRef(null);
-  const {dispatch} = useContext(Store);
+  const {dispatch, state: {item}} = useContext(Store);
   //nos permite tener estados internos dentro del componente
-  const [state, setState] = useState({});
+  const [state, setState] = useState({item});
 
 //metodo llamado al presionar el boton agregar de el formulario
   const onAdd = (event) => {
@@ -27,7 +28,7 @@ const Form = () => {
     const request = {
       name: state.name,
       id: null,
-      isComplete: false
+      isCompleted: false
     };
 
     //Este fetch especifica que es un POST el post recibe un body que es el que se modela en el request
@@ -46,20 +47,44 @@ const Form = () => {
     });
   }
 
+  const onEdit = (event) => {
+    event.preventDefault();
+
+    const request = {
+      name: state.name,
+      id: item.id,
+      isComplete: item.isComplete
+    };
+
+    fetch(HOST_API+"/todo", {
+      method: "PUT",
+      body: JSON.stringify(request),
+      headers: { 
+        'Content-Type': 'application/json'
+      }
+    }) 
+    .then(response => response.json())
+    .then((todo) => { //el todo es el objeto
+      dispatch({type: "update-item", item: todo});
+      setState({name: ""});//se borran los campos dentro del formulario
+      formRef.current.reset();
+    });
+  }
+
 
   return <form ref={formRef}>
-    <input type="text" name="name" onChange={(event) => {
+    <input type="text" name="name" defaultValue={item.name} onChange={(event) => {
       setState({...state, name: event.target.value})
     }}></input>
-    <button onClick={onAdd}>Agregar</button>
+    {/**Condicionales , si el item existe entonces el boton que sale es Actualizar , si no existe sale el boton Agregar */}
+    {item.id && <button onClick={onEdit}>Actualizar</button> }
+    {!item.id && <button onClick={onAdd}>Agregar</button>}
+
 
   </form>
 
 
 }
-
-
-
 
 
 
@@ -84,8 +109,19 @@ const List = () => {
     //Esto son condiciones obligatorias de useEffect el primer parametro nos dice que la lista tenga contenido y que el dispatch exista para que el effect no se ejecute constantemente y se ejecute en un determinado momento, en este caso cuando se dispare el evento dispatch
   }, [state.list.length, dispatch]);
 
+  const onDelete = (id) => {
+    fetch(HOST_API + "/"+id+"/todo", {
+      method: "DELETE",
+    })
+    .then((list) => {
+      dispatch({ type: "delete-item", id})
+    }) 
+  }
+  const onEdit = (todo) => {
+    dispatch({ type: "edit-item", item: todo})
+  };
 
-   return <div>
+  return <div>
   <table>
     <thead>
       <tr>
@@ -99,21 +135,38 @@ const List = () => {
         return <tr key={todo.id}>
           <td>{todo.id}</td>
           <td>{todo.name}</td>
-          <td>{todo.isCompleted}</td>
+          <td>{todo.isCompleted === true ? "SI" : "NO"}</td>
+          <td><button onClick={() => onDelete(todo.id)}>Eliminar</button></td>
+          <td><button onClick={() => onEdit(todo)}>Editar</button></td>
+          
         </tr>
       })}
     </tbody>
   </table>
 </div>
 }
-
 //reducer es una funcion pura. toda accion debe tener un tipo para poder identificarlas
 function reducer(state, action) {
   switch(action.type) {
+    case 'update-item':
+      const listUpdateEdit = state.list.map((item) => {
+        if(item.id === action.item.id){
+          return action.item;
+        }
+        return item;
+      });
+      return {...state, list: listUpdateEdit, item: {}}  
+    case 'delete-item':
+      const listUpdate = state.list.filter((item) => {
+        return item.id !== action.id;
+      });
+      return {...state, list: listUpdate}
     case 'update-list':
       return {...state, list: action.list}
-      case 'add-item':
-        /**obten el listado reciente y añade un nuevo item  */
+    case 'edit-item':
+      return {...state, item: action.item}
+    case 'add-item':   
+    /**obten el listado reciente y añade un nuevo item  */
         const newList = state.list;
         newList.push(action.item);
         return {...state, list: newList}
@@ -121,7 +174,6 @@ function reducer(state, action) {
         return state;
   }
 }
-
 
 //Un provide nos ayuda a conectar diferentes componentes y se basa en el contexto
 
